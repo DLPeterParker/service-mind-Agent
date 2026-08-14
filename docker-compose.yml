@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 数据库服务 (包含 pgvector 插件，完美适配 AI 场景)
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: ecom_agent_postgres
+    restart: no
+    environment:
+      POSTGRES_USER: agent_user
+      POSTGRES_PASSWORD: agent_password
+      POSTGRES_DB: ecom_agent_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agent_user -d ecom_agent_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Redis 服务 (用于我们上一阶段写的接口限流)
+  redis:
+    image: redis:7-alpine
+    container_name: ecom_agent_redis
+    restart: no
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    command: redis-server --appendonly yes
+
+volumes:
+  pgdata:
+  redisdata:
